@@ -62,7 +62,7 @@ function findVersions(callback) {
             }
             
             // update the cached versions
-            cachedVersions = data.optionalDependencies || {};
+            cachedVersions = data.pluginDependencies || {};
             
             // trigger the callback
             callback(cachedVersions);
