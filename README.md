@@ -40,7 +40,7 @@ squirrel.defaults = {
     allowInstall: false,
     
     // initialise the prompt message
-    promptMessage: 'Package <%= target %> is required. Permit installation? [Y/n]',
+    promptMessage: 'Package "<%= target %>" is required. Permit installation? ',
     
     // the current working directory in which npm will be run to install the package
     cwd: process.cwd(),
@@ -52,10 +52,7 @@ squirrel.defaults = {
     installCommand: '<%= opts.installer %> install <%= target %>@<%= version %>',
     
     // uninstall command
-    uninstallCommand: '<%= opts.installer %> rm <%= target %>',
-
-    // specify the target output stream
-    outputStream: process.stderr
+    uninstallCommand: '<%= opts.installer %> rm <%= target %>'
 };
 ```
 
