@@ -1,12 +1,15 @@
 var async = require('async'),
+    fs = require('fs'),
+    path = require('path'),
     debug = require('debug')('squirrel'),
-    pkginfo = require('pkginfo')(module.parent, 'optionalDependencies'),
     read = require('read'),
     exec = require('child_process').exec,
     _ = require('underscore'),
     errNotPermitted = new Error('Installation not permitted'),
     reCannotFind = /^cannot\sfind/i,
-    reRelative = /^\./;
+    reRelative = /^\./,
+    _existsSync = fs.existsSync || path.existsSync,
+    cachedVersions;
     
 function allowInstall(target, opts, callback) {
     var notPermitted = '';
@@ -31,20 +34,57 @@ function allowInstall(target, opts, callback) {
         callback();
     }
 }
+
+function findVersions(callback) {
+    if (cachedVersions) {
+        callback(cachedVersions);
+    }
+    else {
+        var basePath = path.dirname(path.dirname(module.filename)),
+            lastPath = '';
+        
+        while (basePath !== lastPath && (! _existsSync(path.join(basePath, 'package.json')))) {
+            lastPath = basePath;
+            basePath = path.dirname(basePath);
+        }
+        
+        fs.readFile(path.join(basePath, 'package.json'), 'utf8', function(err, data) {
+            if (! err) {
+                try {
+                    data = JSON.parse(data);
+                }
+                catch (e) {
+                    data = {};
+                }
+            }
+            else {
+                data = {};
+            }
+            
+            // update the cached versions
+            cachedVersions = data.optionalDependencies || {};
+            
+            // trigger the callback
+            callback(cachedVersions);
+        });
+    }
+}
     
 function invoke(command, opts) {
     // generate the command
     var commandTemplate = _.template(opts[command + 'Command'] || '');
 
     return function(target, callback) {
-        var cmdline = commandTemplate({
-                opts: opts,
-                target: target,
-                version: (pkginfo.optionalDependencies || {})[target] || 'latest'
-            });
+        findVersions(function(versions) {
+            var cmdline = commandTemplate({
+                    opts: opts,
+                    target: target,
+                    version: versions[target] || 'latest'
+                });
 
-        debug('invoking: ' + cmdline);
-        exec(cmdline, { cwd: opts.cwd }, callback);
+            debug('invoking: ' + cmdline);
+            exec(cmdline, { cwd: opts.cwd }, callback);
+        });
     };
 }
 
