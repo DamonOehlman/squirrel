@@ -1,10 +1,10 @@
 var squirrel = require('../'),
     expect = require('expect.js');
 
-describe('installable module tests', function() {
+describe('deny installation tests', function() {
     before(function(done) {
         // initialise the squirrel options to allow installation
-        squirrel.defaults.allowInstall = true;
+        squirrel.defaults.allowInstall = false;
         
         squirrel.rm(['nopt', 'matchme'], done);
     });
@@ -15,33 +15,33 @@ describe('installable module tests', function() {
     
     it('should be able to install nopt', function(done) {
         squirrel('nopt', function(err, nopt) {
-            expect(nopt).to.be.ok();
-            done(err);
+            expect(err).to.be.ok();
+            expect(err.message).to.contain('not permitted');
+            done();
         });
     });
     
     it('should be able to deal with both installed and uninstalled modules', function(done) {
         squirrel(['debug', 'nopt'], function(err, debug, nopt) {
-            expect(debug).to.be.ok();
-            expect(nopt).to.be.ok();
-            done(err);
+            expect(err).to.be.ok();
+            expect(err.message).to.contain('not permitted');
+            done();
         });
     });
     
     it('should be able to install multiple modules', function(done) {
         squirrel(['nopt', 'matchme'], function(err, nopt, matchme) {
-            expect(nopt).to.be.ok();
-            expect(matchme).to.be.ok();
-            done(err);
+            expect(err).to.be.ok();
+            expect(err.message).to.contain('not permitted');
+            done();
         });
     });
     
     it('should be able to install the demo dependencies', function(done) {
         squirrel(['coffee-script', 'jade'], function(err, coffee, jade) {
-            expect(coffee).to.be.ok();
-            expect(typeof coffee.compile).to.equal('function');
-            expect(jade).to.be.ok();
-            done(err);
+            expect(err).to.be.ok();
+            expect(err.message).to.contain('not permitted');
+            done();
         });
     });
 });

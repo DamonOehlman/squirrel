@@ -30,10 +30,34 @@ squirrel(['coffee-script', 'jade'], function(err, coffee, jade) {
 
 ## Squirrel Options
 
-A squirrel's got to have options.  The demands on the modern squirrel mean that having options is important, and this squirrel is not different.  Here are the options that squirrel supports in a 2nd (optional) argument:
+A squirrel's got to have options.  The demands on the modern squirrel mean that having options is important, and this squirrel is not different.  Here are the options that squirrel supports in a 2nd (optional) argument.
 
-- allowInstall (default: false) - whether or not the user should be able to install the requested package on demand.  This is disabled by default to protect against console prompting when using squirrel in web application environments.
+```js
+// initialise the squirrel defaults
+squirrel.defaults = {
+    // whether or not the interactive process that will allow the user to request 
+    // the package will be installed or not
+    allowInstall: false,
+    
+    // initialise the prompt message
+    promptMessage: 'Package <%= target %> is required. Permit installation? [Y/n]',
+    
+    // the current working directory in which npm will be run to install the package
+    cwd: process.cwd(),
+    
+    // the path to the installer, by default we are hoping `npm` will exist in the PATH
+    installer: 'npm',
+    
+    // install command
+    installCommand: '<%= opts.installer %> install <%= target %>@<%= version %>',
+    
+    // uninstall command
+    uninstallCommand: '<%= opts.installer %> rm <%= target %>',
 
+    // specify the target output stream
+    outputStream: process.stderr
+};
+```
 
 The default options can be modified through modifying them in the `squirrel.defaults` object.
 

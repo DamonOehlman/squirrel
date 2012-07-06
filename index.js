@@ -4,8 +4,33 @@ var async = require('async'),
     read = require('read'),
     exec = require('child_process').exec,
     _ = require('underscore'),
+    errNotPermitted = new Error('Installation not permitted'),
     reCannotFind = /^cannot\sfind/i,
     reRelative = /^\./;
+    
+function allowInstall(target, opts, callback) {
+    var notPermitted = '';
+    
+    if (! opts.allowInstall) {
+        callback(errNotPermitted);
+    }
+    else if (opts.allowInstall === 'prompt') {
+        var template = _.template(opts.promptMessage),
+            readOpts = {
+                prompt: template({ target: target, opts: opts }),
+                'default': 'Y'
+            };
+        
+        read(readOpts, function(err, result) {
+            var proceed = (! err) && (result || '').toLowerCase().slice(0, 1) === 'y';
+
+            callback(proceed ? null : errNotPermitted);
+        });
+    }
+    else {
+        callback();
+    }
+}
     
 function invoke(command, opts) {
     // generate the command
@@ -47,8 +72,13 @@ function squirrel(targets, opts, callback) {
         }
         
         if (shouldInstall) {
-            // if we should install this module, do that now
-            invoke('install', opts)(target, function(err) {
+            var actions = [
+                    allowInstall.bind(null, target, opts),
+                    invoke('install', opts).bind(null, target)
+                ];
+            
+            // iterate through the actions
+            async.series(actions, function(err) {
                 if (err) {
                     itemCallback(err);
                 }
@@ -104,6 +134,9 @@ squirrel.defaults = {
     // whether or not the interactive process that will allow the user to request 
     // the package will be installed or not
     allowInstall: false,
+    
+    // initialise the prompt message
+    promptMessage: 'Package "<%= target %>" is required. Permit installation? ',
     
     // the current working directory in which npm will be run to install the package
     cwd: process.cwd(),
