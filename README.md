@@ -43,7 +43,7 @@ squirrel.defaults = {
     promptMessage: 'Package "<%= target %>" is required. Permit installation? ',
     
     // the current working directory in which npm will be run to install the package
-    cwd: process.cwd(),
+    cwd: basePath, // defaults to the directory the squirrel parent package.json has been located in
     
     // the path to the installer, by default we are hoping `npm` will exist in the PATH
     installer: 'npm',
