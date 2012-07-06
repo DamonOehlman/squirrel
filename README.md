@@ -35,3 +35,6 @@ A squirrel's got to have options.  The demands on the modern squirrel mean that 
 
 The default options can be modified through modifying them in the `squirrel.defaults` object.
 
+## Shouldn't Squirrel be dependency free?
+
+You could argue that given squirrel's mission is to reduce the overall number of package dependencies, it should be ultralight in it's own packaging.  While that's a valid point, I think a balance is required and using existing well-tested libraries is important.
