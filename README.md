@@ -1,8 +1,8 @@
 # squirrel
 
-Squirrel is a helpful node module that allows you to optionally include packages (via [optionalDependencies](http://npmjs.org/doc/json.html#optionalDependencies)) into your application for runtime use rather than using [dependencies](http://npmjs.org/doc/json.html#dependencies).
+Squirrel is a helpful node module that assists you requiring your  [optionalDependencies](http://npmjs.org/doc/json.html#optionalDependencies) into your application for runtime use rather than using [dependencies](http://npmjs.org/doc/json.html#dependencies).
 
-If you are using `optionalDependencies` in your application trying "squirreling" them rather than requiring them.  (__NOTE:__ Squirreling is an asynchronous operation):
+If you are using `optionalDependencies` in your application try "squirreling" them rather than requiring them.  (__NOTE:__ Squirreling is an asynchronous operation):
 
 ```js
 var squirrel = require('squirrel');
