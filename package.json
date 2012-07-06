@@ -1,35 +1,30 @@
 {
-  "name": "matchme",
-  "description": "Simple Object Query Language",
+  "name": "squirrel",
+  "description": "A furry little helper for dealing with optional NPM dependencies",
   "author": "Damon Oehlman <damon.oehlman@sidelab.com>",
   "tags": [
     "query",
     "match",
     "filter"
   ],
-  "version": "0.1.3",
-  "main": "pkg/cjs/matchme",
+  "version": "0.0.0",
   "engines": {
-    "node": ">= 0.4.x < 0.9.0"
+    "node": ">= 0.6.x < 0.9.0"
   },
   "dependencies": {},
   "devDependencies": {
-    "interleave": "0.1.x",
-    "uglify-js": "*",
     "expect.js": "0.1.x",
-    "underscore": "1.3.x",
-    "mocha": "*",
-    "chai": "*"
+    "mocha": "1.2.x"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/DamonOehlman/matchme.git"
+    "url": "git://github.com/DamonOehlman/squirrel.git"
   },
   "bugs": {
-    "url": "http://github.com/DamonOehlman/matchme/issues"
+    "url": "http://github.com/DamonOehlman/squirrel/issues"
   },
   "scripts": {
-    "test": "mocha --reporter spec"
+    "test": "node_modules/mocha/bin/mocha --reporter spec"
   },
   "contributors": [],
   "optionalDependencies": {}
