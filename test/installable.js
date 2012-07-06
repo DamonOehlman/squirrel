@@ -7,7 +7,7 @@ describe('installable module tests', function() {
     });
     
     afterEach(function(done) {
-        squirrel.rm(['nopt', 'matchme'], done);
+        squirrel.rm(['nopt', 'matchme', 'coffee-script', 'jade'], done);
     });
     
     it('should be able to install nopt', function(done) {
@@ -29,6 +29,15 @@ describe('installable module tests', function() {
         squirrel(['nopt', 'matchme'], function(err, nopt, matchme) {
             expect(nopt).to.be.ok();
             expect(matchme).to.be.ok();
+            done(err);
+        });
+    });
+    
+    it('should be able to install the demo dependencies', function(done) {
+        squirrel(['coffee-script', 'jade'], function(err, coffee, jade) {
+            expect(coffee).to.be.ok();
+            expect(typeof coffee.compile).to.equal('function');
+            expect(jade).to.be.ok();
             done(err);
         });
     });
