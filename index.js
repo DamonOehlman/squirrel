@@ -6,6 +6,7 @@ var async = require('async'),
     exec = require('child_process').exec,
     _ = require('underscore'),
     errNotPermitted = new Error('Installation not permitted'),
+    basePath,
     reCannotFind = /^cannot\sfind/i,
     reRelative = /^\./,
     _existsSync = fs.existsSync || path.existsSync,
@@ -35,56 +36,19 @@ function allowInstall(target, opts, callback) {
     }
 }
 
-function findVersions(callback) {
-    if (cachedVersions) {
-        callback(cachedVersions);
-    }
-    else {
-        var basePath = path.dirname(path.dirname(module.filename)),
-            lastPath = '';
-        
-        while (basePath !== lastPath && (! _existsSync(path.join(basePath, 'package.json')))) {
-            lastPath = basePath;
-            basePath = path.dirname(basePath);
-        }
-        
-        fs.readFile(path.join(basePath, 'package.json'), 'utf8', function(err, data) {
-            if (! err) {
-                try {
-                    data = JSON.parse(data);
-                }
-                catch (e) {
-                    data = {};
-                }
-            }
-            else {
-                data = {};
-            }
-            
-            // update the cached versions
-            cachedVersions = data.pluginDependencies || {};
-            
-            // trigger the callback
-            callback(cachedVersions);
-        });
-    }
-}
-    
 function invoke(command, opts) {
     // generate the command
     var commandTemplate = _.template(opts[command + 'Command'] || '');
 
     return function(target, callback) {
-        findVersions(function(versions) {
-            var cmdline = commandTemplate({
-                    opts: opts,
-                    target: target,
-                    version: versions[target] || 'latest'
-                });
+        var cmdline = commandTemplate({
+                opts: opts,
+                target: target,
+                version: squirrel.versions[target] || 'latest'
+            });
 
-            debug('invoking: ' + cmdline);
-            exec(cmdline, { cwd: opts.cwd }, callback);
-        });
+        debug('invoking: ' + cmdline);
+        exec(cmdline, { cwd: opts.cwd }, callback);
     };
 }
 
@@ -169,6 +133,31 @@ squirrel.rm = function(targets, opts, callback) {
     async.forEach(targets, invoke('uninstall', opts), callback);
 };
 
+
+// find the basepath
+basePath = path.dirname(path.dirname(module.filename));
+
+(function() {
+    var lastPath = '', packageData = {};
+
+    while (basePath !== lastPath && (! _existsSync(path.join(basePath, 'package.json')))) {
+        lastPath = basePath;
+        basePath = path.dirname(basePath);
+    }
+    
+    try {
+        // read the package 
+        packageData = require(path.join(basePath, 'package.json'));
+    }
+    catch (e) {
+        // could not find package.json in the expected spot, so default the basepath to the cwd
+        // reset the basepath to the cwd
+        basePath = process.cwd();
+    }
+    
+    squirrel.versions = packageData.pluginDependencies || {};
+}());
+
 // initialise the squirrel defaults
 squirrel.defaults = {
     // whether or not the interactive process that will allow the user to request 
@@ -179,7 +168,7 @@ squirrel.defaults = {
     promptMessage: 'Package "<%= target %>" is required. Permit installation? ',
     
     // the current working directory in which npm will be run to install the package
-    cwd: process.cwd(),
+    cwd: basePath,
     
     // the path to the installer, by default we are hoping `npm` will exist in the PATH
     installer: 'npm',
