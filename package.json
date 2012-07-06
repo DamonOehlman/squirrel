@@ -3,9 +3,9 @@
   "description": "A furry little helper for dealing with optional NPM dependencies",
   "author": "Damon Oehlman <damon.oehlman@sidelab.com>",
   "tags": [
-    "query",
-    "match",
-    "filter"
+    "dependency",
+    "optional",
+    "npm"
   ],
   "version": "0.0.1",
   "engines": {
