@@ -9,7 +9,7 @@ var async = require('async'),
     basePath,
     reCannotFind = /^cannot\sfind/i,
     reRelative = /^\./,
-    _existsSync = fs.existsSync || path.existsSync,
+    _existsSync = fs.existsSync || fs.existsSync,
     cachedVersions;
     
 function allowInstall(target, opts, callback) {
