@@ -8,7 +8,7 @@ Squirrel is a helpful node module that assists you requiring your dependencies f
 
 Because personally, I really don't like the sitting waiting for a node package to install a whole swag of dependencies because it requires them for some functionality that I don't intend to use.  I believe using squirrel will enable certain types of packages to have a leaner core with properly managed and installable optional dependencies.
 
-## Exmaple Usage
+## Example Usage
 
 If you are using `optionalDependencies` in your application, you might consider using `pluginDependencies` instead and then "squirreling" them rather than requiring them.  (__NOTE:__ Squirreling is an asynchronous operation):
 
