@@ -45,10 +45,14 @@ function invoke(command, opts) {
                 opts: opts,
                 target: target,
                 version: squirrel.versions[target] || 'latest'
-            });
+            }),
+            npmProcess = exec(cmdline, { cwd: opts.cwd }, callback);
 
-        debug('invoking: ' + cmdline);
-        exec(cmdline, { cwd: opts.cwd }, callback);
+        // if we are in prompt mode, pass through stdout and err from npm
+        if (opts.allowInstall == 'prompt') {
+            npmProcess.stdout.pipe(process.stdout);
+            npmProcess.stderr.pipe(process.stderr);
+        }
     };
 }
 
