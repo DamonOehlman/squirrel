@@ -100,9 +100,18 @@ cases might be useful in production code also.
 
 ## Squirrel Installer Reference
 
+This module constains the installer helper functions used within squirrel.
+Each of the functions outlined below is designed to be called initially
+with an options object, which then provides you the function signature
+outlined in the docs.
+
+```js
+var installer = require('squirrel/installer');
+```
+
 ### install(target, callback)
 
-Execute the required installer operation
+Use npm to install the required target.
 
 ### prepare(target, callback)
 
