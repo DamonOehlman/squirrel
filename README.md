@@ -41,40 +41,39 @@ way similar to the way AMD module loaders do:
 squirrel(['coffee-script', 'jade'], function(err, coffee, jade) {
   // do something with both coffeescript and jade...
 });
-```
 
-## Squirrel Options
+## Different "Allow Install" Modes
+
+Squirrel has been built to support a number of "Allow Install" modes, which 
+is controlled in an `allowInstall` option that the squirrel function accepts
+in the 2nd argument, e.g.:
+
+```js
+// install jade, and don't trigger a prompt if not already available
+squirrel('jade', { allowInstall: true }, function(err, jade) {
+});
+```
+The default setting for the `allowInstall` option is set to `prompt` which
+means that when a module using `squirrel` attempts to squirrel one or more
+modules, the user will be prompted if they want to allow those modules to
+install.  If they don't permit installation then the squirrel operation
+will fail and an error will be returned in the callback.
+
+Other valid settings for the `allowInstall` option are `true` (install
+dependencies without prompting) or `false` (always reject module requests).
+
+## Other Squirrel Options
 
 A squirrel's got to have options.  The demands on the modern squirrel
 mean that having options is important, and this squirrel is not different.
 Here are the options that squirrel supports in a 2nd (optional) argument.
 
-```js
-// initialise the squirrel defaults
-squirrel.defaults = {
-  // whether or not the interactive process that will allow the user to
-  // request the package will be installed or not
-  allowInstall: false,
-  
-  // initialise the prompt message
-  promptMessage: 'Package "<%= target %>" is required. Permit install? ',
-  
-  // the current working directory in which npm will be run to install
-  // the package, defaults to the directory the squirrel parent
-  // package.json is located in
-  cwd: basePath, 
-  
-  // the path to the installer, by default we are hoping
-  // `npm` will exist in the PATH
-  installer: 'npm',
-  
-  // install command
-  installCommand: '<%= opts.installer %> install <%= target %>@<%= version %>',
-  
-  // uninstall command
-  uninstallCommand: '<%= opts.installer %> rm <%= target %>'
-};
-```
+- `allowInstall` - as outlined above.
+- `promptMessage` - 'Package "<%= target %>" is required. Permit install? '
+- `cwd` - the path to squirrel in
+- `installer` - 'npm'
+- `installCommand` - '<%= opts.installer %> install <%= target %>@<%= version %>'
+- `uninstallCommand` - '<%= opts.installer %> rm <%= target %>'
 
 The default options can be modified through modifying them in
 the `squirrel.defaults` object.
