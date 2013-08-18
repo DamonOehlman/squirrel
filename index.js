@@ -48,6 +48,7 @@ var versions = {};
   squirrel(['coffee-script', 'jade'], function(err, coffee, jade) {
     // do something with both coffeescript and jade...
   });
+  ```
 
   ## Different "Allow Install" Modes
 
