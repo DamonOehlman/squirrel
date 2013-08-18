@@ -115,9 +115,13 @@ function squirrel(targets, opts, callback) {
   }
   
   // initialise the opts
-  opts = _.defaults({ versions: versions }, opts, squirrel.defaults);
+  opts = _.extend({ versions: versions }, squirrel.defaults, opts);
 
-  // pull streams FTW!
+  // initialise allowInstall
+  if (typeof opts.allowInstall == 'undefined') {
+    opts.allowInstall = squirrel.defaults.allowInstall;
+  }
+
   pull(
     pull.values(targets),
     pull.asyncMap(installer.prepare(opts)),
@@ -146,7 +150,7 @@ squirrel.rm = function(targets, opts, callback) {
   }
   
   // initialise the opts
-  opts = _.defaults({ versions: versions }, opts, squirrel.defaults);
+  opts = _.extend({ versions: versions }, squirrel.defaults, opts);
   
   // uninstall each of the specified targets
   pull(
