@@ -16,7 +16,7 @@ describe('deny installation tests', function() {
     it('should be able to install nopt', function(done) {
         squirrel('nopt', function(err, nopt) {
             expect(err).to.be.ok();
-            expect(err.message).to.contain('not permitted');
+            expect(err.message).to.contain('Not permitted');
             done();
         });
     });
@@ -24,7 +24,7 @@ describe('deny installation tests', function() {
     it('should be able to deal with both installed and uninstalled modules', function(done) {
         squirrel(['debug', 'nopt'], function(err, debug, nopt) {
             expect(err).to.be.ok();
-            expect(err.message).to.contain('not permitted');
+            expect(err.message).to.contain('Not permitted');
             done();
         });
     });
@@ -32,7 +32,7 @@ describe('deny installation tests', function() {
     it('should be able to install multiple modules', function(done) {
         squirrel(['nopt', 'matchme'], function(err, nopt, matchme) {
             expect(err).to.be.ok();
-            expect(err.message).to.contain('not permitted');
+            expect(err.message).to.contain('Not permitted');
             done();
         });
     });
@@ -40,7 +40,7 @@ describe('deny installation tests', function() {
     it('should be able to install the demo dependencies', function(done) {
         squirrel(['coffee-script', 'jade'], function(err, coffee, jade) {
             expect(err).to.be.ok();
-            expect(err.message).to.contain('not permitted');
+            expect(err.message).to.contain('Not permitted');
             done();
         });
     });

@@ -1,180 +1,78 @@
-var async = require('async'),
-    fs = require('fs'),
-    path = require('path'),
-    debug = require('debug')('squirrel'),
-    read = require('read'),
-    exec = require('child_process').exec,
-    _ = require('underscore'),
-    errNotPermitted = new Error('Installation not permitted'),
-    basePath,
-    reCannotFind = /^cannot\sfind/i,
-    reRelative = /^\./,
-    _existsSync = fs.existsSync || path.existsSync,
-    cachedVersions;
-    
-function allowInstall(target, opts, callback) {
-    var notPermitted = '';
-    
-    if (! opts.allowInstall) {
-        callback(errNotPermitted);
-    }
-    else if (opts.allowInstall === 'prompt') {
-        var template = _.template(opts.promptMessage),
-            readOpts = {
-                prompt: template({ target: target, opts: opts }),
-                'default': 'Y'
-            };
-        
-        read(readOpts, function(err, result) {
-            var proceed = (! err) && (result || '').toLowerCase().slice(0, 1) === 'y';
+/* jshint node: true */
+'use strict';
 
-            callback(proceed ? null : errNotPermitted);
-        });
-    }
-    else {
-        callback();
-    }
-}
+var pull = require('pull-stream');
+var fs = require('fs');
+var path = require('path');
+var _ = require('underscore');
+var basePath;
+var _existsSync = fs.existsSync || path.existsSync;
+var installer = require('./installer');
+var versions = {};
 
-function invoke(command, opts) {
-    // generate the command
-    var commandTemplate = _.template(opts[command + 'Command'] || '');
+/**
+  # squirrel
 
-    return function(target, callback) {
-        var cmdline = commandTemplate({
-                opts: opts,
-                target: target,
-                version: squirrel.versions[target] || 'latest'
-            }),
-            npmProcess = exec(cmdline, { cwd: opts.cwd }, callback);
+  Squirrel is a helpful node module that assists you requiring your
+  dependencies for plugins of your application (version controlled via a
+  custom `pluginDependencies` in your `package.json` file).
 
-        // if we are in prompt mode, pass through stdout and err from npm
-        if (opts.allowInstall == 'prompt') {
-            npmProcess.stdout.pipe(process.stdout);
-            npmProcess.stderr.pipe(process.stderr);
-        }
-    };
-}
+  ## Why Squirrel?
 
-function squirrel(targets, opts, callback) {
-    
-    function requireModule(target, itemCallback, attemptCount) {
-        var mod, err, shouldInstall = false;
-        
-        // initialise the attempt count to 0
-        attemptCount = attemptCount || 0;
-        debug('attempting to require: ' + target);
-        
-        // attempt to require the module in a try catch
-        try {
-            mod = require(target);
-        }
-        catch (e) {
-            debug('caught require exception: ', e);
-            
-            // check if the module load failed because it couldn't be found
-            shouldInstall = (attemptCount < 1) && reCannotFind.test(e.message) && (! reRelative.test(target));
-            
-            // customize the error
-            err = attemptCount > 0 ? new Error('Attempted installation and was unable to install module') : e;
-        }
-        
-        if (shouldInstall) {
-            var actions = [
-                    allowInstall.bind(null, target, opts),
-                    invoke('install', opts).bind(null, target)
-                ];
-            
-            // iterate through the actions
-            async.series(actions, function(err) {
-                if (err) {
-                    itemCallback(err);
-                }
-                else {
-                    requireModule(target, itemCallback, attemptCount + 1);
-                }
-            });
-        }
-        else {
-            debug('module "' + target + '" required, result: ', typeof mod);
-            itemCallback(err, mod);
-            
-        }
-    }
-    
-    // ensure the targets is an array
-    targets = [].concat(targets || []);
-    
-    // handle the no options specified case
-    if (typeof opts == 'function') {
-        callback = opts;
-        opts = {};
-    }
-    
-    // initialise the opts
-    opts = _.defaults(opts || {}, squirrel.defaults);
-    
-    // get each of the requested modules
-    async.mapSeries(targets, requireModule, function(err, modules) {
-        callback.apply(null, [err].concat(modules));
-    });
-}
+  Because personally, I really don't like the sitting waiting for a node
+  package to install a whole swag of dependencies because it requires them
+  for some functionality that I don't intend to use.  I believe using
+  squirrel will enable certain types of packages to have a leaner core
+  with properly managed and installable optional dependencies.
 
-squirrel.rm = function(targets, opts, callback) {
-    // ensure the targets is an array
-    targets = [].concat(targets || []);
-    
-    // handle the no options specified case
-    if (typeof opts == 'function') {
-        callback = opts;
-        opts = {};
-    }
-    
-    // initialise the opts
-    opts = _.defaults(opts || {}, squirrel.defaults);
-    
-    // uninstall each of the specified targets
-    async.forEach(targets, invoke('uninstall', opts), callback);
-};
+  ## Example Usage
 
+  If you are using `optionalDependencies` in your application, you might
+  consider using `pluginDependencies` instead and then "squirreling"
+  them rather than requiring them.
 
-// find the basepath
-basePath = path.dirname(path.dirname(module.filename));
+  __NOTE:__ Squirreling is an asynchronous operation:
 
-(function() {
-    var lastPath = '', packageData = {};
+  ```js
+  var squirrel = require('squirrel');
 
-    while (basePath !== lastPath && (! _existsSync(path.join(basePath, 'package.json')))) {
-        lastPath = basePath;
-        basePath = path.dirname(basePath);
-    }
-    
-    try {
-        // read the package 
-        packageData = require(path.join(basePath, 'package.json'));
-    }
-    catch (e) {
-        // could not find package.json in the expected spot, so default the basepath to the cwd
-        // reset the basepath to the cwd
-        basePath = process.cwd();
-    }
-    
-    squirrel.versions = packageData.pluginDependencies || {};
-}());
+  squirrel('coffee-script', function(err, coffee) {
+    // do something magical with coffeescript...
+  });
+  ```
 
-// initialise the squirrel defaults
-squirrel.defaults = {
-    // whether or not the interactive process that will allow the user to request 
-    // the package will be installed or not
+  If you need multiple modules, then squirrel is happy to play in a 
+  way similar to the way AMD module loaders do:
+
+  ```js
+  squirrel(['coffee-script', 'jade'], function(err, coffee, jade) {
+    // do something with both coffeescript and jade...
+  });
+  ```
+
+  ## Squirrel Options
+
+  A squirrel's got to have options.  The demands on the modern squirrel
+  mean that having options is important, and this squirrel is not different.
+  Here are the options that squirrel supports in a 2nd (optional) argument.
+
+  ```js
+  // initialise the squirrel defaults
+  squirrel.defaults = {
+    // whether or not the interactive process that will allow the user to
+    // request the package will be installed or not
     allowInstall: false,
     
     // initialise the prompt message
-    promptMessage: 'Package "<%= target %>" is required. Permit installation? ',
+    promptMessage: 'Package "<%= target %>" is required. Permit install? ',
     
-    // the current working directory in which npm will be run to install the package
-    cwd: basePath,
+    // the current working directory in which npm will be run to install
+    // the package, defaults to the directory the squirrel parent
+    // package.json is located in
+    cwd: basePath, 
     
-    // the path to the installer, by default we are hoping `npm` will exist in the PATH
+    // the path to the installer, by default we are hoping
+    // `npm` will exist in the PATH
     installer: 'npm',
     
     // install command
@@ -182,6 +80,129 @@ squirrel.defaults = {
     
     // uninstall command
     uninstallCommand: '<%= opts.installer %> rm <%= target %>'
+  };
+  ```
+
+  The default options can be modified through modifying them in
+  the `squirrel.defaults` object.
+
+  ## Shouldn't Squirrel be dependency free?
+
+  You could argue that given squirrel's mission is to reduce the overall
+  number of package dependencies, it should be ultralight in it's own
+  packaging.  While that's a valid point, I think a balance is required and
+  using existing well-tested libraries is important.
+
+  ## Reference
+
+**/
+
+/**
+  ### squirrel(targets, opts?, callback)
+
+  Request the installation of the modules specified in the `targets` array
+  argument.
+
+**/
+function squirrel(targets, opts, callback) {
+  // ensure the targets is an array
+  targets = [].concat(targets || []);
+  
+  // handle the no options specified case
+  if (typeof opts == 'function') {
+    callback = opts;
+    opts = {};
+  }
+  
+  // initialise the opts
+  opts = _.defaults({ versions: versions }, opts, squirrel.defaults);
+
+  // pull streams FTW!
+  pull(
+    pull.values(targets),
+    pull.asyncMap(installer.prepare(opts)),
+    pull.paraMap(installer.install(opts)),
+    pull.collect(function(err, modules) {
+      callback.apply(this, [err].concat(modules));
+    })
+  );
+}
+
+/**
+  ### squirrel.rm(targets, opts, callback)
+
+  Remove the specified targets.  Used in squirrel tests and I guess in some
+  cases might be useful in production code also.
+
+**/
+squirrel.rm = function(targets, opts, callback) {
+  // ensure the targets is an array
+  targets = [].concat(targets || []);
+  
+  // handle the no options specified case
+  if (typeof opts == 'function') {
+    callback = opts;
+    opts = {};
+  }
+  
+  // initialise the opts
+  opts = _.defaults({ versions: versions }, opts, squirrel.defaults);
+  
+  // uninstall each of the specified targets
+  pull(
+    pull.values(targets),
+    pull.paraMap(installer.remove(opts)),
+    pull.collect(callback)
+  );
+};
+
+// find the basepath
+basePath = path.dirname(path.dirname(module.filename));
+
+(function() {
+  var lastPath = '', packageData = {};
+
+  while (basePath !== lastPath &&
+    (! _existsSync(path.join(basePath, 'package.json')))) {
+    lastPath = basePath;
+    basePath = path.dirname(basePath);
+  }
+  
+  try {
+    // read the package 
+    packageData = require(path.join(basePath, 'package.json'));
+  }
+  catch (e) {
+    // could not find package.json in the expected spot, so
+    // default the basepath to the cwd
+    basePath = process.cwd();
+  }
+  
+  versions = packageData.pluginDependencies || {};
+}());
+
+// initialise the squirrel defaults
+squirrel.defaults = {
+  // whether or not the interactive process that will allow the user to request 
+  // the package will be installed or not
+  allowInstall: false,
+  
+  // initialise the prompt message
+  promptMessage: 'Package "<%= target %>" is required. Permit installation? ',
+  
+  // the current working directory in which npm will be
+  // run to install the package
+  cwd: basePath,
+  
+  // the path to the installer, by default we are hoping `npm`
+  // will exist in the PATH
+  installer: 'npm',
+  
+  // install command
+  installCommand: '<%= opts.installer %> install <%= target %>@<%= version %>',
+  
+  // uninstall command
+  uninstallCommand: '<%= opts.installer %> rm <%= target %>'
 };
 
 // export squirrel

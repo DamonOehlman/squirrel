@@ -11,6 +11,7 @@ describe('require existing modules check', function() {
     
     it('should be able to include multiple modules in a single call', function(done) {
         squirrel(['read', 'underscore'], function(err, read, _) {
+            assert.ifError(err);
             assert(read);
             assert(_);
             done(err);
