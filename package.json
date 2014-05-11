@@ -15,8 +15,8 @@
     "pull-stream": "^2"
   },
   "devDependencies": {
-    "expect.js": "0.1.x",
-    "mocha": "1.12.x"
+    "expect.js": "~0.3",
+    "mocha": "^1"
   },
   "repository": {
     "type": "git",
