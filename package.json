@@ -26,7 +26,7 @@
     "url": "http://github.com/DamonOehlman/squirrel/issues"
   },
   "scripts": {
-    "test": "$(npm bin)/mocha --reporter spec --timeout 30s",
+    "test": "mocha --reporter spec --timeout 30s",
     "gendocs": "gendocs > README.md"
   },
   "main": "index.js",
