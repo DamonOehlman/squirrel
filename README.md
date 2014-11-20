@@ -7,8 +7,7 @@ custom `pluginDependencies` in your `package.json` file).
 
 [![NPM](https://nodei.co/npm/squirrel.png)](https://nodei.co/npm/squirrel/)
 
-[![Build Status](https://img.shields.io/travis/DamonOehlman/squirrel.svg?branch=master)](https://travis-ci.org/DamonOehlman/squirrel)
-![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)
+[![Build Status](https://img.shields.io/travis/DamonOehlman/squirrel.svg?branch=master)](https://travis-ci.org/DamonOehlman/squirrel) [![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)](https://github.com/dominictarr/stability#unstable) 
 
 ## Why Squirrel?
 
