@@ -38,7 +38,7 @@ exports.install = function(opts) {
     cmdline = commandTemplate({
       opts: opts,
       target: target.name,
-      version: opts.versions[target] || 'latest'
+      version: opts.versions[target.name] || 'latest'
     });
 
     // create the npm process
