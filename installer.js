@@ -127,7 +127,8 @@ exports.prepare = function(opts) {
 **/
 exports.remove = function(opts) {
   return function(target, callback) {
-    var cmdline = _.template(opts.uninstallCommand, {
+    var commandTemplate = _.template(opts.uninstallCommand);
+    var cmdline = commandTemplate({
       opts: opts,
       target: target,
       version: opts.versions[target] || 'latest'
