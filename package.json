@@ -10,9 +10,10 @@
   "version": "1.0.0",
   "dependencies": {
     "debug": "*",
+    "pull-stream": "^2",
     "read": "^1",
-    "underscore": "^1",
-    "pull-stream": "^2"
+    "semver": "^4.3.4",
+    "underscore": "^1"
   },
   "devDependencies": {
     "expect.js": "~0.3",
