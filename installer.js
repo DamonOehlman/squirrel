@@ -4,6 +4,7 @@
 var exec = require('child_process').exec;
 var read = require('read');
 var _ = require('underscore');
+var semver = require('semver');
 var reCannotFind = /^cannot\sfind/i;
 var reRelative = /^\./;
 
@@ -82,6 +83,21 @@ exports.prepare = function(opts) {
     // attempt to require the module
     try {
       result.module = require(name);
+
+      if(opts.versions[name]){
+        var modulePath = require.resolve(name);
+        if(modulePath !== null){
+
+          var modulePackage = modulePath.replace(/(node_modules\/[^\/]+\/)(?!node_modules).+?$/,'$1package.json');
+          var moduleVersion = require(modulePackage).version;
+
+          if(moduleVersion !== null && !semver.satisfies(moduleVersion, opts.versions[name])) {
+            delete result.module;
+            result.install = (!reRelative.test(name));
+          }
+        }
+      }
+
     }
     catch (e) {
       result.install = reCannotFind.test(e.message) &&
