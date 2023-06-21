@@ -12,7 +12,7 @@
     "debug": "*",
     "pull-stream": "^2",
     "read": "^1",
-    "semver": "^4.3.4",
+    "semver": "^7.5.2",
     "underscore": "^1"
   },
   "devDependencies": {
